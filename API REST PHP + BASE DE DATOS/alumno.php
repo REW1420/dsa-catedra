@@ -34,13 +34,13 @@ switch ($method) {
         // Obtener un alumno específico o todos los alumnos
         if (isset($_GET['id'])) {
             // Obtener un alumno específico
-            $stmt = $pdo->prepare("SELECT * FROM alumnos WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT * FROM alumnos WHERE id = ? ");
             $stmt->execute([$_GET['id']]);
             $alumno = $stmt->fetch(PDO::FETCH_ASSOC);
             echo json_encode($alumno);
         } else {
             // Obtener todos los alumnos
-            $stmt = $pdo->query("SELECT * FROM alumnos");
+            $stmt = $pdo->query("SELECT * FROM alumnos order by id desc");
             $alumnos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode($alumnos);
         }
@@ -60,30 +60,36 @@ switch ($method) {
         echo json_encode($alumno);
         break;
     case 'PUT':
-        // Actualizar un alumno existente
-        $data = json_decode(file_get_contents('php://input'), true);
-        $stmt = $pdo->prepare("UPDATE alumnos SET nombre = ?, apellido = ?, edad = ? WHERE id = ?");
-        $stmt->execute([$data['nombre'], $data['apellido'], $data['edad'], $_GET['id']]);
-        $alumno = [
-            'id' => $_GET['id'],
+         $data = json_decode(file_get_contents('php://input'), true);
+         if ($data['edad']==-987) {
+            $stmt = $pdo->prepare("DELETE FROM alumnos WHERE id = ?");
+            $stmt->execute([$data['id']]);
+            echo json_encode(['mensaje' => 'El alumno ha sido eliminado correctamente.']);          
+         } else {
+           // Actualizar un alumno existente              
+           $stmt = $pdo->prepare("UPDATE alumnos SET nombre = ?, apellido = ?, edad = ? WHERE id = ?");
+           $stmt->execute([$data['nombre'], $data['apellido'], $data['edad'], $data['id']]);
+           $alumno = [
+            'id' => $data['id'],
             'nombre' => $data['nombre'],
             'apellido' => $data['apellido'],
             'edad' => $data['edad']
-        ];
-        echo json_encode($alumno);
+            ];
+           echo json_encode($alumno);    
+        }     
         break;
-    case 'DELETE':      
-     // Eliminar un alumno existente
-    if (isset($_GET['id'])) {
-        $stmt = $pdo->prepare("DELETE FROM alumnos WHERE id = ?");
-        $stmt->execute([$_GET['id']]);
-        echo json_encode(['mensaje' => 'El alumno ha sido eliminado correctamente.']);
-     }else {
-        // Error: no se ha proporcionado un ID de alumno para actualizar
-        header('HTTP/1.1 400 Bad Request');
-        echo json_encode(['error' => 'No se proporcionado un ID de alumno para actualizar']);
+    case 'DELETE':
+       // Eliminar un alumno existente
+       if (isset($_GET['id'])) {
+          $stmt = $pdo->prepare("DELETE FROM alumnos WHERE id = ?");
+          $stmt->execute([$_GET['id']]);
+          echo json_encode(['mensaje' => 'El alumno ha sido eliminado correctamente.']);           
+       }else {
+          // Error: no se ha proporcionado un ID de alumno para actualizar
+          header('HTTP/1.1 400 Bad Request');
+          echo json_encode(['error' => 'No se proporcionado un ID de alumno para actualizar']);
         }
-    break;
+        break;
     default:
         // Método HTTP no válido
         header('HTTP/1.1 405 Method Not Allowed');

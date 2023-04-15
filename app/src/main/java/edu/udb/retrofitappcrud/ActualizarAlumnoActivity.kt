@@ -1,13 +1,18 @@
 package edu.udb.retrofitappcrud
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonSyntaxException
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -71,31 +76,6 @@ class ActualizarAlumnoActivity : AppCompatActivity() {
 
         val alumno = Alumno(0,nombre, apellido, edad)
 
-        /*
-        // Realizar una solicitud GET para obtener el alumno correspondiente al ID
-        api.obtenerAlumnoPorId(alumnoId).enqueue(object : Callback<Alumno> {
-            override fun onResponse(call: Call<Alumno>, response: Response<Alumno>) {
-                if (response.isSuccessful && response.body() != null) {
-                    // Si la solicitud es exitosa, guardar el objeto Alumno en la variable correspondiente
-                    alumno = response.body()
-                    // Actualizar los campos de texto en la interfaz de usuario con los datos del alumno
-                    nombreEditText.setText(alumno?.nombre)
-                    apellidoEditText.setText(alumno?.apellido)
-                    edadEditText.setText(alumno?.edad.toString())
-                }
-                val error = response.errorBody()?.string()
-                Log.e("API", "Error : $error")
-            }
-
-            override fun onFailure(call: Call<Alumno>, t: Throwable) {
-                // Si la solicitud falla, mostrar un mensaje de error en un Toast
-                Log.e("API", "t : $t")
-                Toast.makeText(this@ActualizarAlumnoActivity, "Error al obtener el alumno", Toast.LENGTH_SHORT).show()
-            }
-        })
-         */
-
-
         // Configurar el botón de actualización
         actualizarButton.setOnClickListener {
             if (alumno != null) {
@@ -106,24 +86,54 @@ class ActualizarAlumnoActivity : AppCompatActivity() {
                     apellidoEditText.text.toString(),
                     edadEditText.text.toString().toInt()
                 )
-                Log.e("API", "alumnoActualizado : $alumnoActualizado")
+                //Log.e("API", "alumnoActualizado : $alumnoActualizado")
+
+                val jsonAlumnoActualizado = Gson().toJson(alumnoActualizado)
+                Log.d("API", "JSON enviado: $jsonAlumnoActualizado")
+
+                val gson = GsonBuilder()
+                    .setLenient() // Agrega esta línea para permitir JSON malformado
+                    .create()
+
                 // Realizar una solicitud PUT para actualizar el objeto Alumno
                 api.actualizarAlumno(alumnoId, alumnoActualizado).enqueue(object : Callback<Alumno> {
                     override fun onResponse(call: Call<Alumno>, response: Response<Alumno>) {
                         if (response.isSuccessful && response.body() != null) {
                             // Si la solicitud es exitosa, mostrar un mensaje de éxito en un Toast
                             Toast.makeText(this@ActualizarAlumnoActivity, "Alumno actualizado correctamente", Toast.LENGTH_SHORT).show()
-                            // Finalizar la actividad
-                            finish()
+                            val i = Intent(getBaseContext(), MainActivity::class.java)
+                            startActivity(i)
+                        } else {
+                            // Si la respuesta del servidor no es exitosa, manejar el error
+                            try {
+                                val errorJson = response.errorBody()?.string()
+                                val errorObj = JSONObject(errorJson)
+                                val errorMessage = errorObj.getString("message")
+                                Toast.makeText(this@ActualizarAlumnoActivity, errorMessage, Toast.LENGTH_SHORT).show()
+                            } catch (e: Exception) {
+                                // Si no se puede parsear la respuesta del servidor, mostrar un mensaje de error genérico
+                                Toast.makeText(this@ActualizarAlumnoActivity, "Error al actualizar el alumno", Toast.LENGTH_SHORT).show()
+                                Log.e("API", "Error al parsear el JSON: ${e.message}")
+                            }
                         }
-                        val error = response.errorBody()?.string()
-                        Log.e("API", "Error actualizar alumno: $error")
                     }
 
                     override fun onFailure(call: Call<Alumno>, t: Throwable) {
                         // Si la solicitud falla, mostrar un mensaje de error en un Toast
                         Log.e("API", "onFailure : $t")
                         Toast.makeText(this@ActualizarAlumnoActivity, "Error al actualizar el alumno", Toast.LENGTH_SHORT).show()
+
+                        // Si la respuesta JSON está malformada, manejar el error
+                        try {
+                            val gson = GsonBuilder().setLenient().create()
+                            val error = t.message ?: ""
+                            val alumno = gson.fromJson(error, Alumno::class.java)
+                            // trabajar con el objeto Alumno si se puede parsear
+                        } catch (e: JsonSyntaxException) {
+                            Log.e("API", "Error al parsear el JSON: ${e.message}")
+                        } catch (e: IllegalStateException) {
+                            Log.e("API", "Error al parsear el JSON: ${e.message}")
+                        }
                     }
                 })
             }

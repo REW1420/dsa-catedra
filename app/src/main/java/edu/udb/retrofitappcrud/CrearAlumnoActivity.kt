@@ -1,5 +1,6 @@
 package edu.udb.retrofitappcrud
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -48,7 +49,6 @@ class CrearAlumnoActivity : AppCompatActivity() {
             val edad = edadEditText.text.toString().toInt()
 
             val alumno = Alumno(0,nombre, apellido, edad)
-
             Log.e("API", "auth_username: $auth_username")
             Log.e("API", "auth_password: $auth_password")
 
@@ -75,9 +75,9 @@ class CrearAlumnoActivity : AppCompatActivity() {
             api.crearAlumno(alumno).enqueue(object : Callback<Alumno> {
                 override fun onResponse(call: Call<Alumno>, response: Response<Alumno>) {
                     if (response.isSuccessful) {
-                        val ok = response.errorBody()?.string()
-                        Log.e("API", "OK: $ok")
                         Toast.makeText(this@CrearAlumnoActivity, "Alumno creado exitosamente", Toast.LENGTH_SHORT).show()
+                        val i = Intent(getBaseContext(), MainActivity::class.java)
+                        startActivity(i)
                     } else {
                         val error = response.errorBody()?.string()
                         Log.e("API", "Error crear alumno: $error")

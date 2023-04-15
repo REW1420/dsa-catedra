@@ -17,6 +17,6 @@ interface AlumnoApi {
     @PUT("alumno/{id}")
     fun actualizarAlumno(@Path("id") id: Int, @Body alumno: Alumno): Call<Alumno>
 
-    @DELETE("alumno/{id}")
-    fun eliminarAlumno(@Path("id") id: Int): Call<Void>
+    @PUT("alumno/{id}")
+    fun eliminarAlumno(@Path("id") id: Int, @Body alumno: Alumno): Call<Void>
 }
