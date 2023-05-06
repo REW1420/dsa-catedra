@@ -1,4 +1,4 @@
-package edu.udb.retrofitappcrud
+package edu.udb.retrofitappcrud.vistas
 
 import android.content.Intent
 import android.os.Bundle
@@ -7,32 +7,31 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import edu.udb.retrofitappcrud.R
+import edu.udb.retrofitappcrud.interaces.ProfesorAPI
+import edu.udb.retrofitappcrud.modelos.Profesor
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class CrearAlumnoActivity : AppCompatActivity() {
-
+class CrearProfesor : AppCompatActivity() {
     private lateinit var nombreEditText: EditText
     private lateinit var apellidoEditText: EditText
-    private lateinit var edadEditText: EditText
-    private lateinit var crearButton: Button
+    private lateinit var carnetEditText: EditText
 
     // Obtener las credenciales de autenticación
     var auth_username = ""
     var auth_password = ""
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_crear_alumno)
+        setContentView(R.layout.activity_crear_profesor)
 
         // Obtención de datos que envia actividad anterior
-        val datos: Bundle? = intent.getExtras()
+        val datos: Bundle? = intent.extras
         if (datos != null) {
             auth_username = datos.getString("auth_username").toString()
             auth_password = datos.getString("auth_password").toString()
@@ -40,55 +39,55 @@ class CrearAlumnoActivity : AppCompatActivity() {
 
         nombreEditText = findViewById(R.id.editTextNombre)
         apellidoEditText = findViewById(R.id.editTextApellido)
-        edadEditText = findViewById(R.id.editTextEdad)
-        crearButton = findViewById(R.id.btnGuardar)
+        carnetEditText = findViewById(R.id.editTextCarnet)
+        val crearButton = findViewById<Button>(R.id.btnGuardar)
 
         crearButton.setOnClickListener {
             val nombre = nombreEditText.text.toString()
             val apellido = apellidoEditText.text.toString()
-            val edad = edadEditText.text.toString().toInt()
+            val carnet = carnetEditText.text.toString()
 
-            val alumno = Alumno(0,nombre, apellido, edad)
+            val profesor = Profesor(0, nombre, apellido, carnet)
             Log.e("API", "auth_username: $auth_username")
             Log.e("API", "auth_password: $auth_password")
 
             // Crea un cliente OkHttpClient con un interceptor que agrega las credenciales de autenticación
-            val client = OkHttpClient.Builder()
-                .addInterceptor { chain ->
+            val client = OkHttpClient.Builder().addInterceptor { chain ->
                     val request = chain.request().newBuilder()
                         .addHeader("Authorization", Credentials.basic(auth_username, auth_password))
                         .build()
                     chain.proceed(request)
-                }
-                .build()
-
+                }.build()
             // Crea una instancia de Retrofit con el cliente OkHttpClient
-            val retrofit = Retrofit.Builder()
-                .baseUrl("http://200.33.51.36/api/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .client(client)
-                .build()
+            val retrofit = Retrofit.Builder().baseUrl("http://10.0.2.2/api/")
+                .addConverterFactory(GsonConverterFactory.create()).client(client).build()
 
             // Crea una instancia del servicio que utiliza la autenticación HTTP básica
-            val api = retrofit.create(AlumnoApi::class.java)
+            val api = retrofit.create(ProfesorAPI::class.java)
 
-            api.crearAlumno(alumno).enqueue(object : Callback<Alumno> {
-                override fun onResponse(call: Call<Alumno>, response: Response<Alumno>) {
+            api.crearProfesor(profesor).enqueue(object : Callback<Profesor> {
+                override fun onResponse(call: Call<Profesor>, response: Response<Profesor>) {
                     if (response.isSuccessful) {
-                        Toast.makeText(this@CrearAlumnoActivity, "Alumno creado exitosamente", Toast.LENGTH_SHORT).show()
-                        val i = Intent(getBaseContext(), MainActivity::class.java)
+                        Toast.makeText(this@CrearProfesor, "Profesor creado", Toast.LENGTH_SHORT)
+                            .show()
+                        val i = Intent(baseContext, ProfesorActivity::class.java)
                         startActivity(i)
+
                     } else {
                         val error = response.errorBody()?.string()
                         Log.e("API", "Error crear alumno: $error")
-                        Toast.makeText(this@CrearAlumnoActivity, "Error al crear el alumno", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this@CrearProfesor, "Error al crear el profesor", Toast.LENGTH_SHORT
+                        ).show()
                     }
-
                 }
 
-                override fun onFailure(call: Call<Alumno>, t: Throwable) {
-                    Toast.makeText(this@CrearAlumnoActivity, "Error al crear el alumno", Toast.LENGTH_SHORT).show()
+                override fun onFailure(call: Call<Profesor>, t: Throwable) {
+                    Toast.makeText(
+                        this@CrearProfesor, "Error al crear el alumno", Toast.LENGTH_SHORT
+                    ).show()
                 }
+
             })
         }
     }

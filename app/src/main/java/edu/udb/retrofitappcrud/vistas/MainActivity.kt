@@ -1,7 +1,6 @@
-package edu.udb.retrofitappcrud
+package edu.udb.retrofitappcrud.vistas
 
 import android.app.AlertDialog
-import android.content.DialogInterface
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -10,7 +9,12 @@ import android.view.View
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import edu.udb.retrofitappcrud.R
+import edu.udb.retrofitappcrud.adaptadores.AlumnoAdapter
+import edu.udb.retrofitappcrud.interaces.AlumnoApi
+import edu.udb.retrofitappcrud.modelos.Alumno
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import retrofit2.Call
@@ -23,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: AlumnoAdapter
     private lateinit var api: AlumnoApi
+    private lateinit var bottomNavigationView: BottomNavigationView
 
     // Obtener las credenciales de autenticación
     val auth_username = "admin"
@@ -33,6 +38,28 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val fab_agregar: FloatingActionButton = findViewById<FloatingActionButton>(R.id.fab_agregar)
+            //bottom nav
+        bottomNavigationView = findViewById(R.id.bottomNavView)
+
+        bottomNavigationView.setOnItemSelectedListener {
+
+            when (it.itemId) {
+
+                R.id.home -> showAlumno()
+
+                R.id.search -> showProfesor()
+
+                else -> {
+
+
+                }
+
+            }
+
+            true
+
+        }
+
 
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -49,7 +76,7 @@ class MainActivity : AppCompatActivity() {
 
         // Crea una instancia de Retrofit con el cliente OkHttpClient
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://200.33.51.36/api/")
+            .baseUrl("http://10.0.2.2/api/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()
@@ -61,11 +88,21 @@ class MainActivity : AppCompatActivity() {
 
         // Cuando el usuario quiere agregar un nuevo registro
         fab_agregar.setOnClickListener(View.OnClickListener {
-            val i = Intent(getBaseContext(), CrearAlumnoActivity::class.java)
+            val i = Intent(baseContext, CrearAlumnoActivity::class.java)
             i.putExtra("auth_username", auth_username)
             i.putExtra("auth_password", auth_password)
             startActivity(i)
         })
+    }
+
+    private fun showAlumno() {
+        val i = Intent(this, MainActivity::class.java)
+        startActivity(i)
+    }
+
+    private fun showProfesor() {
+        val i = Intent(this, ProfesorActivity::class.java)
+        startActivity(i)
     }
 
     override fun onResume() {

@@ -1,4 +1,4 @@
-package edu.udb.retrofitappcrud
+package edu.udb.retrofitappcrud.modelos
 
 data class Alumno(
     val id: Int,

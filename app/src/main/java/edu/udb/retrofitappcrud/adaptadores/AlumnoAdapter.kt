@@ -1,10 +1,12 @@
-package edu.udb.retrofitappcrud
+package edu.udb.retrofitappcrud.adaptadores
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import edu.udb.retrofitappcrud.R
+import edu.udb.retrofitappcrud.modelos.Alumno
 
 class AlumnoAdapter(private val alumnos: List<Alumno>) : RecyclerView.Adapter<AlumnoAdapter.ViewHolder>() {
 
